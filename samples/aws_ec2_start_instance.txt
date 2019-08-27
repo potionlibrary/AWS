@@ -1,0 +1,36 @@
+aws ec2 launch
+
+
+aws ec2 run-instances \ 
+--image-id ami-005bdb005fb00e791 --count 4 \
+--instance-type t2.micro --key-name 8mar2018-key \
+--vpc-id vpc-0b4eadfbf20275090 \ 
+--security-group-ids --group-id sg-00ceeadd891361a71 \
+--subnet-id subnet-7c082105 --associate-public-ip-address
+
+
+-------------------------------------------------------------------
+all instaces created in this belong to VPC: vpc-0b4eadfbf20275090 |
+-------------------------------------------------------------------
+
+Creates 1 ubuntu instances with security group and subnet IP range
+
+aws ec2 run-instances --image-id ami-005bdb005fb00e791 --count 1 --instance-type t2.micro --key-name 8mar2018-key --security-group-ids sg-00ceeadd891361a71 --subnet-id subnet-0154bf76ebdb307e0 --associate-public-ip-address
+
+Creates 1 windows instance
+
+aws ec2 run-instances --image-id ami-0819e2bf4e3159ac9 --count 1 --instance-type t2.micro --key-name 8mar2018-key --security-group-ids sg-00ceeadd891361a71 --subnet-id subnet-0154bf76ebdb307e0 --associate-public-ip-address
+
+Creates 3 ubuntu instance with security group only - no subnet IP range
+
+aws ec2 run-instances --image-id ami-005bdb005fb00e791 --count 3 --instance-type t2.micro --key-name 8mar2018-key --security-group-ids sg-00ceeadd891361a71 
+
+-----------------------------
+
+redhat
+
+aws ec2 run-instances --image-id ami-036affea69a1101c9 --count 1 --instance-type t2.micro --key-name 8mar2018-key --security-group-ids sg-00ceeadd891361a71 --subnet-id subnet-0154bf76ebdb307e0 --associate-public-ip-address
+
+-----------------------------
+
+ssh -i <key> ec2-54-184-14-194.us-west-2.compute.amazonaws.com
