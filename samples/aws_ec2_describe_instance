@@ -1,0 +1,45 @@
+Queries the Instances and returns a list of instance ID and the public DNS
+
+aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId,ImageId]"
+
+-----------------------------
+
+To describe all EC2 instances that have an instance type of m1.small or m1.medium that are also in the us-west-2c Availability Zone
+
+Command:
+
+aws ec2 describe-instances --filters "Name=instance-type,Values=m1.small,m1.medium" "Name=availability-zone,Values=us-west-2c"
+
+-----------------------------
+
+To describe an Amazon EC2 instance
+
+Command:
+
+aws ec2 describe-instances --instance-ids i-1234567890abcdef0
+
+-----------------------------
+
+To describe all instances, and return all instance IDs and AMI IDs, but only show the tag value where the tag key is "Application".
+
+Linux Command:
+
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key=='Name'].Value,InstanceId,PublicDnsName]'
+
+
+-----------------------------
+
+Describe inatnce by Name, Instance ID, and state
+
+
+aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId,]"
+
+
+----------------------------
+
+aws ec2 describe-instances --query "Reservations[*].Instances[*].[PrivateIpAddress]" --output table
+
+
+
+
+
