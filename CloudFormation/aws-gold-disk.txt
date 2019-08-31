@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Designer':
+    dd2bec82-546b-4580-bdac-68fc76358128:
+      size:
+        width: 740
+        height: 250
+      position:
+        x: 230
+        'y': -10
+      z: 0
+      embeds:
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+    20700925-8c91-44f9-ac1a-399afefa68a6:
+      size:
+        width: 560
+        height: 140
+      position:
+        x: 310
+        'y': 50
+      z: 1
+      parent: dd2bec82-546b-4580-bdac-68fc76358128
+      embeds:
+        - 48a6ba28-7732-4cdd-84a5-dd71c853f646
+      iscontainedinside:
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+        - dd2bec82-546b-4580-bdac-68fc76358128
+    48a6ba28-7732-4cdd-84a5-dd71c853f646:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 560
+        'y': 100
+      z: 2
+      parent: 20700925-8c91-44f9-ac1a-399afefa68a6
+      embeds: []
+      iscontainedinside:
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+        - 20700925-8c91-44f9-ac1a-399afefa68a6
+    732af404-d9ee-4809-9aac-20b5a5a6714c:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 70
+        'y': 80
+      z: 0
+      embeds: []
+      iscontainedinside:
+        - dd2bec82-546b-4580-bdac-68fc76358128
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: dd2bec82-546b-4580-bdac-68fc76358128
+  Subnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 20700925-8c91-44f9-ac1a-399afefa68a6
+  Bastion:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-00fc224d9834053d6
+      InstanceType: t2.micro
+      KeyName: zone-a-bastion
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          SubnetId: !Ref Subnet
+      Tags:
+        - Key: Name
+          Value: Bastion
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 48a6ba28-7732-4cdd-84a5-dd71c853f646
+  bastionSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Alow jump-box to pivot to other instances
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 1
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: bastionSG
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 732af404-d9ee-4809-9aac-20b5a5a6714c
