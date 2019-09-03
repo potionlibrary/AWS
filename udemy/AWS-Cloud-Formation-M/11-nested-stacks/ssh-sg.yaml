@@ -1,0 +1,25 @@
+Parameters:
+  ApplicationName:
+    Description:
+    Type:
+  VPCId:
+  Description: some string
+  Type: AWS::EC2::VPC::Id
+
+Resources:
+  SSHSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: !Sub Security group for {ApplicationName}
+      SecurityGroupIngress:
+        - CidrIp: "10.0.0.0/24"
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+          Description: SSH for some instance
+      VpcId:  !Ref VPCId
+
+Outputs:
+  SSHGroupId:
+    Value: !Ref SSHSecurityGroup
+    Description: Od for the SSH Security Group
