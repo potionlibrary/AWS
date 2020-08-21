@@ -1,5 +1,5 @@
-#Use this script to recover any of the toapgi instances
-#To use this script you must enter an valid ami-id, toapgi server type, valid instance ID
+#Use this script to recover instances
+#To use this script you must enter an valid ami-id, valid instance ID
 
 #libraries
 import re
