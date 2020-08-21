@@ -69,19 +69,19 @@ def set_type_of_recovery(user_input):
     print("\n\n\n")
 
     if user_input == "ui":
-        print ("you have selected to recover a toapgi user interface node")
+        print ("you have selected to recover a user interface node")
         type_of_recovery = "single"
     elif user_input == "integ":
-        print ("you have selected to recover a toapgi intergration node")
+        print ("you have selected to recover a intergration node")
         type_of_recovery = "single"
     elif user_input == "grid":
-        print ("you have selected to recover a toapgi grid node")
+        print ("you have selected to recover a grid node")
         type_of_recovery = "single"
     elif user_input == "sso":
-        print ("you have selected to recover a toapig single signon node")
+        print ("you have selected to recover a single signon node")
         type_of_recovery = "single"
     elif user_input == "db":
-        print ("you have selected to recover a toapgi database node")
+        print ("you have selected to recover a database node")
         type_of_recovery = "multi"
     else: 
         print ("option is invalid") # todo: I want to make this a while loop incase someone puts in a wrong value - JW 8/19/2020
