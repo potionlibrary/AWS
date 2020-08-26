@@ -1,5 +1,11 @@
-#Use this script to recover instances
-#To use this script you must enter an valid ami-id, valid instance ID
+# Use this script to recover instances Tested on RHEL8
+# To use this script you must enter an valid ami-id, valid instance ID
+
+# You also have to edit the subnet ID: the following fields
+# "--subnet-id", "some-subnet",
+# "--key-name", "some-key",
+
+# required packages: aws-cli, unzip, python3
 
 #libraries
 import re
@@ -99,8 +105,8 @@ def create_instance(instance_name):
         "--instance-type",
         "c4.2xlarge",
         "--count","1",
-        "--subnet-id", "subnet-287a434c",
-        "--key-name", "noss-zone-a-private",
+        "--subnet-id", "some-subnet",
+        "--key-name", "some-key",
         "--tag-specifications",
         "ResourceType=instance,Tags=[{{Key=Name,Value={}}}]".format(instance_id_2_name),
         "ResourceType=volume,Tags=[{{Key=Name,Value={}}}]".format(instance_id_2_name),
