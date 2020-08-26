@@ -1,4 +1,4 @@
-# Use this script to recover instances Tested on RHEL8
+# Use this script to recover instances using an AMI
 # To use this script you must enter an valid ami-id, valid instance ID
 
 # You also have to edit the subnet ID: the following fields
