@@ -1,23 +1,19 @@
-# Use this script to recover instances using an AMI
-# To use this script you must enter an valid ami-id, valid instance ID
-
-# You also have to edit the subnet ID: the following fields
-# "--subnet-id", "some-subnet",
-# "--key-name", "some-key",
-
-# required packages: aws-cli, unzip, python3
+# Added final remarks sections to compare volume lists, success messege if the volume are in correct order.
+# On line 119 and 120 change the values "--subnet-id", "some-subnet", "--key-name", "some-key", to fit your evironment.
+# Script has been testing on RHEL images, can be modified for windows if customer wants to host on another platform.
+# Script execution speed has increased by 30% since 8/1/2020 - JW
+# Script should utilize boto3 library in the future 9/9/2020 - JW
 
 #libraries
 import re
 import time
 import subprocess
+import collections
 
 # Instance variables for task
 ami_id = 0
 instance_id_1 = 0
 instance_id_2 = 0 
-type_of_server = 0
-type_of_recovery = 0
 instance_id_1_name = 0
 instance_id_2_name = 0
 
@@ -28,25 +24,65 @@ volume_id_list_3 = list()
 volume_id_list_4 = list()
 
 
-
-#Buffer function to be used to synch aws with user consolse
-
-def aws_synch(x):
-    time.sleep(x)
-
-# Ask the user for the AMI and instance ID that will be used for backup
+# Collect infomration from users
 
 def get_user_data():
-    global ami_id, instance_id_1, type_of_server
+    global ami_id, instance_id_1
 
-    type_of_server = input("Please Enter type of xxx instance to be recovered(eg: ui, integ, grid, sso, db):")
     ami_id = input("Please Enter AMI id of backup to be used:")
     instance_id_1 = input("Please Enter instance ID of server to be recovered:")
 
+#Buffer function to be used to synch aws with user consolse
+
+def aws_synch(instance_id,timer):
+    
+    while(1):
+
+        time.sleep(2)
+
+        status = subprocess.check_output((
+        "aws",
+        "ec2",
+        "describe-instances",
+        "--instance-ids",
+        "{}".format(instance_id),
+        "--query",
+        "Reservations[*].Instances[*].{State:State.Name}",
+        "--output",
+        "text"
+        ))
+
+        status = status.decode('utf-8')
+        status = status.replace("\n","")
+
+        if status == "stopping":
+            print("Synchronizing with AWS...")
+            time.sleep(timer)
+
+        elif status == "pending":
+            print("Synchronizing with AWS...")
+            time.sleep(timer)
+
+        elif status == "shutting-down":
+            print("Synchronizing with AWS...")
+            time.sleep(timer)
+
+        elif status == "starting":
+            print("Synchronizing with AWS...")
+            time.sleep(timer)
+
+        elif status == "running" or status == "stopped":
+            break
+
+        else:
+            print("Instance returned: " + status + "status \n")
+            time.sleep(timer)
+
 #Get name of instance
 
-def set_instance_name(instance_id):
-    global  instance_id_1_name, instance_id_2_name
+def set_instance_name(id_1):
+
+    global instance_id_1_name, instance_id_2_name
 
     #Queries Amazon for name of instance
 
@@ -55,12 +91,13 @@ def set_instance_name(instance_id):
         "ec2",
         "describe-instances",
         "--instance-ids",
-        "{}".format(instance_id),
+        "{}".format(id_1),
         "--query",
         "Reservations[*].Instances[*].[Tags[?Key==`Name`].Value]",
         "--output",
         "text"
         ))
+
 
     #Removes the added formating and extra values assigns names of instances to be used.
     instance_id_1_name = name.decode('utf-8').rstrip("\n") 
@@ -69,33 +106,10 @@ def set_instance_name(instance_id):
 
 #function decide type of recovery to be performed
 
-def set_type_of_recovery(user_input):    
-    global type_of_recovery
+def create_instance(name_2, ami_id):
 
-    print("\n\n\n")
-
-    if user_input == "ui":
-        print ("you have selected to recover a user interface node")
-        type_of_recovery = "single"
-    elif user_input == "integ":
-        print ("you have selected to recover a intergration node")
-        type_of_recovery = "single"
-    elif user_input == "grid":
-        print ("you have selected to recover a grid node")
-        type_of_recovery = "single"
-    elif user_input == "sso":
-        print ("you have selected to recover a single signon node")
-        type_of_recovery = "single"
-    elif user_input == "db":
-        print ("you have selected to recover a database node")
-        type_of_recovery = "multi"
-    else: 
-        print ("option is invalid") # todo: I want to make this a while loop incase someone puts in a wrong value - JW 8/19/2020
-
-
-def create_instance(instance_name):
     global instance_id_2
-
+    
     temp = subprocess.check_output((
         "aws",
         "ec2",
@@ -121,8 +135,9 @@ def create_instance(instance_name):
     print("Recovery instance has been created with following details.")
     print("Name:{0}".format(instance_id_2_name))
     print("Instance-Id:{0}".format(instance_id_2))
+    print("\n\n\n")
 
-    aws_synch(60)
+    aws_synch(instance_id_2,5)
 
 def stop_instance(id_1,id_2):
 
@@ -139,10 +154,13 @@ def stop_instance(id_1,id_2):
 
     print("\n" + action.decode('utf-8') + "\n")
 
-    aws_synch(60)
+    aws_synch(id_1,5)
+    aws_synch(id_2,5)
         
 
 def detach_volume(instance_id,volume_id,instance_name):
+
+    global  instance_id_1_name, instance_id_2_name
 
     subprocess.check_output((
         "aws","ec2",
@@ -155,9 +173,11 @@ def detach_volume(instance_id,volume_id,instance_name):
     ))
 
     print("detaching volume:" + volume_id + " instance-name:" + instance_name)
-    aws_synch(20)
+    
 
 def attach_volume(instance_id,volume_id,device_id,instance_name):
+
+    global  instance_id_1_name, instance_id_2_name
 
     subprocess.check_output((
         "aws","ec2",
@@ -172,7 +192,6 @@ def attach_volume(instance_id,volume_id,device_id,instance_name):
 
     
     print("attaching volume:" + volume_id + " instance-name:" + instance_name)
-    aws_synch(20)
 
 def get_volume_data(id):
 
@@ -233,7 +252,7 @@ def volume_swap(id_1,id_2):
 
     print("\n")
 
-    print(instance_id_1_name)
+    print(instance_id_2_name)
     for i in range (len(volume_d_name_list)):
         attach_volume(instance_id_2,volume_id_list_1[i],volume_d_name_list[i],instance_id_2_name)
 
@@ -253,46 +272,21 @@ def volume_swap(id_1,id_2):
 
     #Prints instance 1 and 2 information before the swap
 
-    print("Before:=============================================")
+def final_remarks(list1, list2):
 
-    print(instance_id_1_name)
+    # Compares list of original instance with swapped instance to test if the volumes are alligned
 
-    for i in volume_id_list_1:
-        print(i)
+    if collections.Counter(list1) == collections.Counter(list2):
 
-    print(instance_id_2_name + ":" + instance_id_2)
-
-    for i in volume_id_list_2:
-        print(i)
-
-    aws_synch(5)
-
-    #Prints instance 1 and 2 information after the swap
-
-    print("After:=============================================")
-
-    print(instance_id_1_name)
-
-    for i in volume_id_list_3:
-        print(i)
-
-    print(instance_id_2_name + ":" + instance_id_2)
-
-    for i in volume_id_list_4:
-        print(i)
-
-
-
-#def final_remarks()
+        print("\n Volume ID to Device name matched, recovery complete please test your instance \n")
 
 def perform_recovery():
 
     get_user_data()
     set_instance_name(instance_id_1)
-    set_type_of_recovery(type_of_server)
-    create_instance(instance_id_2_name)
+    create_instance(instance_id_2_name, ami_id)
     stop_instance(instance_id_1,instance_id_2)
     volume_swap(instance_id_1, instance_id_2)
-    #final_remarks ill work on this next week 8/21/2020
+    final_remarks(volume_id_list_2,volume_id_list_3)
 
 perform_recovery()
