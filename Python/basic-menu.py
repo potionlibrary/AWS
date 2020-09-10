@@ -12,9 +12,7 @@ def print_menu():       ## Your menu design here
     print ("5. Exit")
     print (67 * "-")
 
-loop=True
-
-while loop:          ## While loop which will keep going until loop = False
+while (1):          ## While loop which will keep going until loop = False
     print_menu()    ## Displays menu
     choice = input("Enter your choice [1-5]: ")
 
@@ -33,7 +31,7 @@ while loop:          ## While loop which will keep going until loop = False
     elif choice=="5":
         print ("Menu 5 has been selected")
         ## You can add your code or functions here
-        loop=False # This will make the while loop to end as not value of loop is set to False
+        break # This will make the while loop to end as not value of loop is set to False
     else:
         # Any integer inputs other than values 1-5 we print an error message
         print ("Wrong option selection. Enter any key to try again..")
