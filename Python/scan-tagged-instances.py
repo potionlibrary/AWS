@@ -7,11 +7,11 @@ import datetime
 import time
 
 # List every region you'd like to scan.  We'll need to update this if AWS adds a region
-aws_regions = ['us-gov-west-1']
+aws_regions = ['region']
 
 
 # List of the tags on instances we want to look for to backup
-tags_to_find = ['backup102', 'Backup102']
+tags_to_find = ['backupTest', 'BackupTest']
 
 
 #Scan instances with tags
