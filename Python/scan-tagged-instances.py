@@ -11,7 +11,7 @@ aws_regions = ['region']
 
 
 # List of the tags on instances we want to look for to backup
-tags_to_find = ['backupTest', 'BackupTest']
+tags_to_find = ['Backup']
 
 
 #Scan instances with tags
