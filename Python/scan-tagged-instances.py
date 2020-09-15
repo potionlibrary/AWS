@@ -9,10 +9,6 @@ session = boto3.Session(profile_name='default')
 
 ec2 = boto3.client('ec2')
 
-response = ec2.describe_instances()
-
-#print("Scanning region: {}".format(aws_region))
-
-for i in response
+response = ec2.describe_instances(Filters=[{'Name' : 'tag','Values' : ['']}])
 
 print(response)
