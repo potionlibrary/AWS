@@ -1,4 +1,4 @@
-# This is a base functions that output basic instance details, i added a filter for completeness.
+# Use this to refrence calling objects.
 # Author - JW
 
 #libraries
