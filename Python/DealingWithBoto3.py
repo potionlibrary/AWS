@@ -1,25 +1,21 @@
+# This is a base functions that output basic instance details, i added a filter for completeness.
+# Author - JW
+
+#libraries
 import boto3
 
-client = boto3.client('ec2')
 
-response = client.describe_instances()
-block_mappings = (block_mapping
-                  for reservation in response["Reservations"]
-                  for instance in reservation["Instances"]
-                  for block_mapping in instance["BlockDeviceMappings"])
+aws_regions = ['us-east-2']
+tags_to_find = ['Backup', 'backup']
 
-for block_mapping in block_mappings:
-  print(block_mapping["Ebs"]["DeleteOnTermination"])
-
-#=======================================================================================:
-
-import jmespath
-import boto3
-
-client = boto3.client('ec2')
-
-response = client.describe_instances()
-print(jmespath.search(
-    "Reservations[].Instances[].DeviceBlockMappings[].Ebs.DeleteOnTermination", 
-    response
-))
+def lambda_handler(event, context):
+    
+    ec2 = boto3.client('ec2', region_name='us-east-2')
+    response = ec2.describe_instances(Filters=[{'Name' : 'tag-key','Values' : tags_to_find },]) 
+    
+    for i in response["Reservations"]:
+        print(i["Instances"][0]["PrivateDnsName"])
+        print(i["Instances"][0]["PrivateIpAddress"])
+        print(i["Instances"][0]["State"])
+        print(i["Instances"][0]["InstanceId"])
+        print(i["Instances"][0]["BlockDeviceMappings"])
