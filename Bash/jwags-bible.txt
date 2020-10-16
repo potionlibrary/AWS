@@ -1,0 +1,62 @@
+=====================================================: ask for list, then it updates all IPs on the list
+#!/bin/bash
+
+echo "Enter the name of the list you want to traverse"
+
+read list
+
+for i in $(cat $list); 
+do 
+
+	ssh -i key @$i -t "sudo yum update -y"; 
+
+done
+
+=====================================================: returns the host name for all instances
+#!/bin/bash
+
+echo "Enter the name of the list you want to traverse"
+
+read list
+
+for i in $(cat $list); 
+
+do ssh -i key ec2-user@$i -t "sudo yum update -y"; 
+
+done
+
+
+
+======================================================: copys repo from working node, sends to others, then puts the files in the correct place
+#!/bin/bash
+
+echo "Enter the name of the list you want to traverse"
+
+read list
+
+for i in $(cat $list); 
+do 
+
+	scp -i key ./redhat* ec2-user@$i:/home/ec2-user
+
+	ssh -i key ec2-user@$i -t "sudo cp redhat* /etc/yum.repos.d/; sudo ls -la /etc/yum.repos.d/";  
+
+	sleep 5
+
+done
+
+======================================================: Prints hostname from all instances
+
+#!/bin/bash
+
+echo "Enter the name of the list you want to traverse"
+
+read list
+
+for i in $(cat $list); 
+
+do ssh -q -i key ec2-user@$i -t "sudo cat /etc/hostname"; 
+
+done
+
+
