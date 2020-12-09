@@ -1,3 +1,5 @@
+#only solution is to query the whole list slice and dice it to get what you need.
+
 import boto3
 import pytz
 from datetime import datetime, timedelta
