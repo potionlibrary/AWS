@@ -1,0 +1,53 @@
+{
+    "agent": {
+        "metrics_collection_interval": 60,
+        "run_as_user": "ec2-user"
+    },
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                    {
+                        "file_path": "<dir of log file to track>",
+                        "log_group_name": "name of the log file in cloudwatch",
+                        "log_stream_name": "The name of the stream",
+                        "timestamp_format" : "%d-%b-%Y %H:%M:%S.%f"
+                    },
+                    {
+                        "file_path": "option-2",
+                        "log_group_name": "option-2",
+                        "log_stream_name": "option-2",
+                        "timestamp_format" : "%d-%b-%Y %H:%M:%S.%f"
+                    }               
+                ]
+            }
+        }
+    },
+    "metrics": {
+        "append_dimensions": {
+            "AutoScalingGroupName": "${aws:AutoScalingGroupName}",
+            "ImageId": "${aws:ImageId}",
+            "InstanceId": "${aws:InstanceId}",
+            "InstanceType": "${aws:InstanceType}"
+        },
+        "metrics_collected": {
+            "disk": {
+                "measurement": [
+                    "used_percent"
+                ],
+                "metrics_collection_interval": 60,
+                "resources": [
+                    "*"
+                ]
+            },
+            "mem": {
+                "measurement": [
+                    "mem_used_percent"
+                ],
+                "metrics_collection_interval": 60
+            }
+        }
+    }
+}
+
+
