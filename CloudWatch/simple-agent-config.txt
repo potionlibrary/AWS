@@ -1,0 +1,18 @@
+1. Stop the agent
+
+sudo service amazon-cloudwatch-agent stop
+
+2. Add the new .json config
+
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:<your dir> -s
+
+3. Start the agent
+
+sudo service amazon-cloudwatch-agent start
+
+0. Alternative options
+
+sudo systemctl stop amazon-cloudwatch-agent.service
+
+sudo systemctl start amazon-cloudwatch-agent.service
+
