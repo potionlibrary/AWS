@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-####################
-# NOTE: This code is from 
-#    https://github.com/AndrewFarley/AWS-Automated-Daily-Instance-AMI-Snapshots
-####################
+
 import boto3
 import os
 import sys
