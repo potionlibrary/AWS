@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
-
-import boto3
 import os
 import sys
-import traceback
-import datetime
 import time
+import boto3
+import datetime
+import traceback
+
 
 # List every region you'd like to scan.  We'll need to update this if AWS adds a region
-aws_regions = ['us-east-1','us-east-2','us-west-1','us-west-2',
-'ap-east-1','ap-northeast-1','ap-northeast-2','ap-northeast-3',
-'ap-south-1','ap-southeast-1','ap-southeast-2','ca-central-1',
-'eu-central-1','eu-west-1','eu-west-2','eu-west-3']
+aws_regions = ['us-east-1','us-east-2']
 # If in serverless.yml we limited to a specific region(s)
 if 'LIMIT_TO_REGIONS' in os.environ and len(os.getenv('LIMIT_TO_REGIONS')):
     aws_regions = os.getenv('LIMIT_TO_REGIONS').split(',')
 
 # List of the tags on instances we want to look for to backup
-tags_to_find = ['backup', 'Backup']
+tags_to_find = ['Backup', 'backup']
 
 # Default Retention Time (in days)
-default_retention_time = 7
+default_retention_time = 1
 if 'DEFAULT_RETENTION_TIME' in os.environ and len(os.getenv('DEFAULT_RETENTION_TIME')):
     default_retention_time = int(os.getenv('DEFAULT_RETENTION_TIME'))
 
@@ -32,157 +29,6 @@ if 'KEY_TO_TAG_ON' in os.environ and len(os.getenv('KEY_TO_TAG_ON')):
 dry_run = False
 if 'DRY_RUN' in os.environ and (os.getenv('DRY_RUN') == 'true' or os.getenv('DRY_RUN') == 'True'):
     dry_run = True
-
-
-#####################
-# Helper function to backup tagged volumes in a region
-#####################
-def backup_tagged_volumes_in_region(ec2):
-    
-    print("Scanning for volumes with tags ({})".format(','.join(tags_to_find)))
-
-    # Get our volumes
-    try:
-        volumes = ec2.describe_volumes(Filters=[{'Name': 'tag-key', 'Values': tags_to_find}])
-    except:
-        # Don't fatal error on regions that we haven't activated/enabled
-        if 'OptInRequired' in str(sys.exc_info()):
-            print("  Region not activated for this account, skipping...")
-            return
-        else:
-            raise
-        
-    # TODO: Help I can't do this pythonically...  PR welcome...
-    volumes_array = []
-    for volume in volumes['Volumes']:
-        if volume['State'] in ['available','in-use']:
-            volumes_array.append(volume)
-
-    # Get our volumes and iterate through them...
-    if len(volumes_array) == 0:
-        return
-    print("  Found {} volumes to backup...".format(len(volumes_array)))
-    for volume in volumes_array:
-        print("  Volume ID: {}".format(volume['VolumeId']))
-        # pprint(volume)
-
-        # Get the name of the instance, if set...
-        try:
-            volume_name = [t.get('Value') for t in volume['Tags']if t['Key'] == 'Name'][0]
-        except:
-            volume_name = volume['VolumeId']
-
-        # Get the instance attachment, if attached (mostly just to print)...
-        try:
-            instance_id = volume['Attachments'][0]['InstanceId']
-        except:
-            instance_id = 'No attachment'
-
-        print("Volume Name: {}".format(volume_name))
-        print("Instance ID: {}".format(instance_id))
-    
-        # Get days to retain the backups from tags if set...
-        try:
-            retention_days = [int(t.get('Value')) for t in volume['Tags']if t['Key'] == 'Retention'][0]
-        except:
-            retention_days = default_retention_time
-        print('       Time: {} days'.format(retention_days))
-    
-        # Catch if we were dry-running this
-        if dry_run:
-            print("Backup Name: {}".format("{}-backup-{}".format(volume_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S.%f'))))
-            print("DRY_RUN: Would have created a volume backup...")
-        else:
-            # Create our AMI
-            try:
-                # Get all the tags ready that we're going to set...
-                delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
-                tags = []
-                tags.append({'Key': 'Name', 'Value': "{}-backup-{}".format(volume_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S.%f'))})
-                tags.append({'Key': 'DeleteAfter', 'Value': delete_fmt})
-                tags.append({'Key': 'OriginalVolumeID', 'Value': volume['VolumeId']})
-                tags.append({'Key': global_key_to_tag_on, 'Value': 'true'})
-                # Also grab our old tags
-                try:
-                    if 'Tags' in volume:
-                        for index, item in enumerate(volume['Tags']):
-                            if item['Key'].startswith('aws:'):
-                                print("Modifying internal aws tag so it doesn't fail: {}".format(item['Key']))
-                                tags.append({'Key': 'internal-{}'.format(item['Key']), 'Value': item['Value']})
-                            elif item['Key'] == 'Name':
-                                pass  # Skip our old name, we're overriding it
-                            else:
-                                tags.append(item)
-                except:
-                    pass
-
-                snapshot = ec2.create_snapshot(
-                    Description="Automatic Backup of {} from {}".format(volume_name, volume['VolumeId']),
-                    VolumeId=volume['VolumeId'],
-                    TagSpecifications=[{
-                        'ResourceType': 'snapshot',
-                        'Tags': tags,
-                    }],
-                    # DryRun=True
-                )
-                print("Snapshot ID: {}".format(snapshot['SnapshotId']))
-
-            except Exception as e:
-                print('Caught exception while trying to process volume')
-                pprint(e)
-
-
-#####################
-# Helper function to delete expired snapshots (of volumes)
-#####################
-def delete_expired_snapshots(ec2):
-    try:
-        print("Scanning for snapshots with tags ({})".format(global_key_to_tag_on))
-        snapshots_to_consider = response = ec2.describe_snapshots(
-            Filters=[{'Name': 'tag-key', 'Values': [global_key_to_tag_on]}],
-        )['Snapshots']
-    except:
-        # Don't fatal error on regions that we haven't activated/enabled
-        if 'OptInRequired' in str(sys.exc_info()):
-            print("  Region not activated for this account, skipping...")
-            return
-        else:
-            raise
-    
-    today_date = time.strptime(datetime.datetime.now().strftime('%m-%d-%Y'), '%m-%d-%Y')
-    
-    # Iterate and decide...
-    if len(snapshots_to_consider) == 0:
-        return
-    print("  Found {} snapshots to consider...".format(len(snapshots_to_consider)))
-    for snapshot in snapshots_to_consider:
-        print("  Found snapshot to consider: {}".format(snapshot['SnapshotId']))
-        print("                  For Volume: {}".format(snapshot['VolumeId']))
-    
-        # Figure out when the DeleteAfter is set to
-        try:
-            delete_after = [t.get('Value') for t in snapshot['Tags']if t['Key'] == 'DeleteAfter'][0]
-        except:
-            print("Unable to find when to delete this image after, skipping...")
-            continue
-        print("                Delete After: {}".format(delete_after))
-    
-        # Figure out if we should delete this snapshot
-        delete_date = time.strptime(delete_after, "%m-%d-%Y")
-        if today_date < delete_date:
-            print("This item is too new, skipping...")
-            continue
-    
-        # Catch if we were dry-running this
-        if dry_run:
-            print("DRY_RUN, would have deleted snapshot : {}".format(snapshot['SnapshotId']))
-        else:
-            # Delete this snapshot...
-            print("       === DELETING SNAPSHOT: {}".format(snapshot['SnapshotId']))
-            try:
-                deleteSnapshotResponse = ec2.delete_snapshot( SnapshotId=snapshot['SnapshotId'] )
-            except Exception as e:
-                print("Unable to delete snapshot: {}".format(e))
 
 
 #####################
@@ -343,13 +189,9 @@ def delete_expired_amis(ec2):
 def lambda_handler(event, context):
     
     # For each region we want to scan...
-    for aws_region in aws_regions:
-        ec2 = boto3.client('ec2', region_name=aws_region)
-        print("Scanning region: {}".format(aws_region))
-        
-        # Volumes...
-        backup_tagged_volumes_in_region(ec2)   # First, backup tagged volumes in that region
-        delete_expired_snapshots(ec2)            # Then delete snapshots that have expired
+    for i in aws_regions:
+        ec2 = boto3.client('ec2', region_name=i)
+        print("Scanning region: {}".format(i))
         
         # AMIs...
         backup_tagged_instances_in_region(ec2) # First, backup tagged instances in that region
