@@ -1,6 +1,5 @@
 import boto3
 
-
 aws_regions = ['us-east-2']
 tags_to_find = ['Backup', 'backup']
 
