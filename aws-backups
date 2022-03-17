@@ -1,0 +1,41 @@
+Configure Backup Vault
+
+0. Configure Oraganizations to create policies
+
+	a. click on your account name
+	b. click on organization
+	c. enable aws backup
+
+1. Type : Key Management Service in the aws console search bar and select the first option
+
+2. Click Create Key Button
+
+3. Select Symetric
+
+	a. add tags
+	b. descriptions
+	c. etc..
+
+4. Create backup vault
+
+	a. backup vaults -> create backup vault
+	b. add the kms key
+	c. add Name field
+
+5. Create Backup plan
+
+	a. Build new plan
+	b. Enter new plan name
+	c. Enter the backup vault
+	c. Enter backup frequency
+
+6. Assign resources
+
+	a. go to backupplans
+	b. select the plan
+	c. scroll down to assign  resources
+
+7. wait until tommorow to see the backups in protected assests
+
+	a. only AMI should be visible
+	b. No snapshot only in EC2 console
